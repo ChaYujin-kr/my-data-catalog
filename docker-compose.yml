@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  # 1. 메타데이터 수집 대상 DB (MySQL)
+  mysql:
+    image: mysql:8.0
+    container_name: local-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # 비밀번호는 심플하게 'root'로 설정
+      MYSQL_DATABASE: my_service_db # 테스트용 DB 자동 생성
+    ports:
+      - "3306:3306" # 내 컴퓨터 3306 포트 <-> 컨테이너 3306 포트 연결
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # 2. 메타데이터 저장소 & 검색엔진 (Elasticsearch)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: local-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false # 로컬 개발용이라 보안 꺼둠 (https 안쓰고 http로 편하게 접속)
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # 메모리 너무 많이 안 먹게 제한
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  # 3. 시각화 도구 (Kibana)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: local-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+volumes:
+  mysql_data:
+  es_data:

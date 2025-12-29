@@ -1,0 +1,178 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "title": {
+        "text": "📚 Data Catalog Search Results",
+        "anchor": "start",
+        "fontSize": 18,
+        "color": "#333",
+        "offset": 20
+    },
+    "data": {
+        "url": {
+            "index": "data-catalog",
+            "%context%": true,
+            "body": {
+                "size": 50,
+                "_source": [
+                    "table_name",
+                    "description",
+                    "owner",
+                    "last_updated",
+                    "source",
+                    "database"
+                ]
+            }
+        },
+        "format": {
+            "property": "hits.hits"
+        }
+    },
+    "transform": [
+        {
+            "calculate": "datum._source.table_name",
+            "as": "table"
+        },
+        {
+            "calculate": "datum._source.source + ' > ' + datum._source.database",
+            "as": "path"
+        },
+        {
+            "calculate": "datum._source.description ? datum._source.description : '- 설명 없음 -'",
+            "as": "desc"
+        },
+        {
+            "calculate": "datum._source.owner ? datum._source.owner : 'Unassigned'",
+            "as": "owner"
+        },
+        {
+            "calculate": "datum._source.last_updated",
+            "as": "updated_at"
+        },
+        {
+            "calculate": "time(now()) - time(datum._source.last_updated) > 24*60*60*1000 ? '⚠️ Stale' : '✅ Fresh'",
+            "as": "status"
+        },
+        {
+            "calculate": "'/app/discover#/?_a=(columns:!(table_name,description,columns.name,columns.type),filters:!(),index:data-catalog,interval:auto,query:(language:kuery,query:(bool:(must:!(),filter:!(),should:!((match_phrase:(table_name:\"' + datum.table + '\"))),minimum_should_match:1))),sort:!())'",
+            "as": "url"
+        }
+    ],
+    "mark": {
+        "type": "text",
+        "baseline": "middle"
+    },
+    "encoding": {
+        "y": {
+            "field": "table",
+            "type": "nominal",
+            "axis": null
+        },
+        "text": {
+            "field": "table",
+            "type": "nominal"
+        },
+        "color": {
+            "value": "#000"
+        }
+    },
+    "layer": [
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": -280,
+                "fontSize": 12,
+                "color": "#666",
+                "fontStyle": "italic"
+            },
+            "encoding": {
+                "text": {
+                    "field": "path"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": -100,
+                "fontWeight": "bold",
+                "fontSize": 15,
+                "cursor": "pointer",
+                "limit": 180
+            },
+            "encoding": {
+                "text": {
+                    "field": "table"
+                },
+                "color": {
+                    "value": "#0056b3"
+                },
+                "href": {
+                    "field": "url"
+                },
+                "tooltip": [
+                    {
+                        "field": "table",
+                        "title": "Table Name"
+                    },
+                    {
+                        "field": "path",
+                        "title": "Path"
+                    },
+                    {
+                        "field": "desc",
+                        "title": "Description"
+                    }
+                ]
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 100,
+                "limit": 300,
+                "color": "#333"
+            },
+            "encoding": {
+                "text": {
+                    "field": "desc"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 420,
+                "style": "label",
+                "color": "#555"
+            },
+            "encoding": {
+                "text": {
+                    "field": "owner"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 550
+            },
+            "encoding": {
+                "text": {
+                    "field": "status"
+                },
+                "color": {
+                    "condition": {
+                        "test": "datum.status == '⚠️ Stale'",
+                        "value": "red"
+                    },
+                    "value": "green"
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,79 @@
+{
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+        "index.max_ngram_diff": 10,
+        "analysis": {
+            "analyzer": {
+                "ngram_analyzer": {
+                    "tokenizer": "ngram_tokenizer",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            },
+            "tokenizer": {
+                "ngram_tokenizer": {
+                    "type": "ngram",
+                    "min_gram": 2,
+                    "max_gram": 10,
+                    "token_chars": [
+                        "letter",
+                        "digit"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "source": {
+                "type": "keyword"
+            },
+            "database": {
+                "type": "keyword"
+            },
+            "table_name": {
+                "type": "text",
+                "analyzer": "ngram_analyzer",
+                "search_analyzer": "standard",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "description": {
+                "type": "text",
+                "analyzer": "standard"
+            },
+            "owner": {
+                "type": "keyword"
+            },
+            "last_updated": {
+                "type": "date"
+            },
+            "columns": {
+                "type": "nested",
+                "properties": {
+                    "name": {
+                        "type": "text",
+                        "analyzer": "standard",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "type": {
+                        "type": "keyword"
+                    },
+                    "comment": {
+                        "type": "text",
+                        "analyzer": "standard"
+                    }
+                }
+            }
+        }
+    }
+}
